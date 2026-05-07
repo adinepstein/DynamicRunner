@@ -1,0 +1,55 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Garth token caches (DynamicRunner-specific)
+.garth_tokens/
+**/.garth_tokens/
+
+# Playwright debug screenshots from garmin_poc_playwright.py
+**/playwright_debug_*.png
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Flutter
+app/build/
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/pubspec.lock
+app/ios/Pods/
+**/google-services.json
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+!**/*.tfvars.example
+**/.terraform.lock.hcl
+
+# AWS
+.aws-credentials
+**/credentials
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Logs
+*.log

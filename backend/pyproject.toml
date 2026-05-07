@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamicrunner"
+version = "0.1.0"
+description = "DynamicRunner FastAPI service and domain models"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "datamodel-code-generator[http,ruff]>=0.25",
+  "pytest>=8",
+  "jsonschema>=4",
+  "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

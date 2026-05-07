@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/plan-output.schema.json",
+  "title": "PlannerAgentOutput",
+  "description": "The strict output schema that Gemini's Planner agent must produce. Validated against this before persistence; failures trigger a retry, then deterministic fallback.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan", "workouts", "selfCritique"],
+  "properties": {
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raceType", "raceDate", "methodology", "methodologyRationale", "weeklyStructure"],
+      "properties": {
+        "raceType": { "$ref": "common.schema.json#/$defs/RaceType" },
+        "raceName": { "type": "string", "maxLength": 200 },
+        "raceDate": { "$ref": "common.schema.json#/$defs/DateOnly" },
+        "goalTimeSec": { "type": "integer" },
+        "goalPaceSecPerKm": { "$ref": "common.schema.json#/$defs/PaceSecPerKm" },
+        "methodology": { "$ref": "common.schema.json#/$defs/Methodology" },
+        "methodologyRationale": { "type": "string", "minLength": 50, "maxLength": 1500 },
+        "weeklyStructure": { "$ref": "plan.schema.json#/properties/weeklyStructure" }
+      }
+    },
+    "workouts": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every day from start_date to race_date inclusive must appear, either as a training workout or as a rest day (type=rest).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scheduledDate", "type", "title", "estimatedDurationSec", "structure"],
+        "properties": {
+          "scheduledDate": { "$ref": "common.schema.json#/$defs/DateOnly" },
+          "type": { "$ref": "common.schema.json#/$defs/WorkoutType" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "estimatedDurationSec": { "type": "integer" },
+          "structure": { "$ref": "workout.schema.json#/properties/structure" },
+          "targets": { "$ref": "workout.schema.json#/properties/targets" }
+        }
+      }
+    },
+    "selfCritique": {
+      "type": "object",
+      "description": "Required self-check the planner must complete before returning. Used as a guard against obvious errors.",
+      "required": ["weeklyVolumeIncreaseOk", "tapersCorrectly", "noBackToBackHard", "longRunCapOk", "comments"],
+      "properties": {
+        "weeklyVolumeIncreaseOk": { "type": "boolean", "description": "True iff every week's volume grows by <=10% vs the prior, except prescribed deload bumps." },
+        "tapersCorrectly": { "type": "boolean" },
+        "noBackToBackHard": { "type": "boolean" },
+        "longRunCapOk": { "type": "boolean", "description": "True iff long run is <=35% of weekly volume in every week." },
+        "comments": { "type": "string", "maxLength": 1000 }
+      }
+    }
+  }
+}

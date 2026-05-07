@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/activity.schema.json",
+  "title": "Activity",
+  "description": "A completed Garmin running activity, normalized for DynamicRunner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid", "garminActivityId", "startedAt", "type", "durationSec", "distanceM"],
+  "properties": {
+    "uid": { "type": "string" },
+    "garminActivityId": { "type": "string" },
+    "startedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" },
+    "localDate": { "$ref": "common.schema.json#/$defs/DateOnly" },
+    "type": {
+      "type": "string",
+      "description": "Garmin activity type, normalized.",
+      "enum": ["running", "trail_running", "treadmill_running", "track_running", "indoor_running", "other"]
+    },
+    "durationSec": { "type": "integer", "minimum": 0 },
+    "distanceM": { "type": "number", "minimum": 0 },
+    "avgPaceSecPerKm": { "$ref": "common.schema.json#/$defs/PaceSecPerKm" },
+    "avgHr": { "type": "integer", "minimum": 30, "maximum": 230 },
+    "maxHr": { "type": "integer", "minimum": 30, "maximum": 230 },
+    "elevationGainM": { "type": "number" },
+    "calories": { "type": "integer" },
+    "trainingEffectAerobic": { "type": "number", "minimum": 0, "maximum": 5 },
+    "trainingEffectAnaerobic": { "type": "number", "minimum": 0, "maximum": 5 },
+    "trainingLoadScore": { "type": "number" },
+    "vo2max": { "type": "number" },
+    "perceivedEffort": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "feeling": { "$ref": "common.schema.json#/$defs/Feeling" },
+    "intervals": {
+      "type": "array",
+      "description": "Lap or interval breakdown if available.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "indexInActivity": { "type": "integer", "minimum": 0 },
+          "durationSec": { "type": "integer" },
+          "distanceM": { "type": "number" },
+          "avgPaceSecPerKm": { "$ref": "common.schema.json#/$defs/PaceSecPerKm" },
+          "avgHr": { "type": "integer" }
+        }
+      }
+    },
+    "matchedWorkoutId": { "type": "string", "description": "If matched to a planned workout, its ID." },
+    "syncedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  }
+}

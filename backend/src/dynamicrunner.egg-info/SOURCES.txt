@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+src/dynamicrunner/__init__.py
+src/dynamicrunner.egg-info/PKG-INFO
+src/dynamicrunner.egg-info/SOURCES.txt
+src/dynamicrunner.egg-info/dependency_links.txt
+src/dynamicrunner.egg-info/requires.txt
+src/dynamicrunner.egg-info/top_level.txt

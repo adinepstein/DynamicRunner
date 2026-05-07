@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/workout.schema.json",
+  "title": "Workout",
+  "description": "A single planned workout. Internal canonical form; mapped to Garmin's structured-workout payload at push time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "planId",
+    "uid",
+    "scheduledDate",
+    "originalScheduledDate",
+    "type",
+    "title",
+    "estimatedDurationSec",
+    "structure",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "planId": { "type": "string" },
+    "uid": { "type": "string" },
+    "scheduledDate": { "$ref": "common.schema.json#/$defs/DateOnly" },
+    "originalScheduledDate": { "$ref": "common.schema.json#/$defs/DateOnly" },
+    "type": { "$ref": "common.schema.json#/$defs/WorkoutType" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 1000 },
+    "estimatedDurationSec": { "type": "integer", "minimum": 0, "maximum": 36000 },
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mainSteps"],
+      "properties": {
+        "warmup": { "$ref": "#/$defs/Step" },
+        "mainSteps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/Step" },
+              { "$ref": "#/$defs/RepeatBlock" }
+            ]
+          }
+        },
+        "cooldown": { "$ref": "#/$defs/Step" }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "description": "Top-level targets summarising the whole workout. Detailed targets live on each Step.",
+      "properties": {
+        "rpeRange": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "status": { "$ref": "common.schema.json#/$defs/WorkoutStatus" },
+    "movedReason": { "$ref": "common.schema.json#/$defs/MovedReason" },
+    "agentReason": {
+      "type": "string",
+      "description": "Human-readable explanation if the workout was created or modified by an agent.",
+      "maxLength": 1000
+    },
+    "garminWorkoutId": { "type": "string", "description": "ID returned by Garmin Connect after upload." },
+    "completedActivityId": { "type": "string", "description": "Activity ID if a Garmin activity has been matched to this workout." },
+    "createdAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  },
+  "$defs": {
+    "Step": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "required": ["kind", "seconds"],
+          "properties": {
+            "kind": { "const": "duration" },
+            "seconds": { "type": "integer", "minimum": 1, "maximum": 36000 },
+            "target": { "$ref": "common.schema.json#/$defs/Target" },
+            "note": { "type": "string", "maxLength": 200 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "meters"],
+          "properties": {
+            "kind": { "const": "distance" },
+            "meters": { "type": "integer", "minimum": 50, "maximum": 100000 },
+            "target": { "$ref": "common.schema.json#/$defs/Target" },
+            "note": { "type": "string", "maxLength": 200 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "lap_button" },
+            "target": { "$ref": "common.schema.json#/$defs/Target" },
+            "note": { "type": "string", "maxLength": 200 }
+          }
+        }
+      ]
+    },
+    "RepeatBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "repeat", "steps"],
+      "properties": {
+        "kind": { "const": "repeat" },
+        "repeat": { "type": "integer", "minimum": 2, "maximum": 50 },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Step" }
+        }
+      }
+    }
+  }
+}

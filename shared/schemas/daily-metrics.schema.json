@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/daily-metrics.schema.json",
+  "title": "DailyMetrics",
+  "description": "One day's physiological snapshot from Garmin. Keyed by local calendar date in the user's timezone.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid", "date", "syncedAt"],
+  "properties": {
+    "uid": { "type": "string" },
+    "date": { "$ref": "common.schema.json#/$defs/DateOnly" },
+    "hrvLastNightMs": { "type": "number", "description": "Garmin HRV (RMSSD) measured overnight, in milliseconds." },
+    "hrvBaselineMs": { "type": "number" },
+    "hrvStatus": { "type": "string", "enum": ["unbalanced", "low", "balanced", "no_data"] },
+    "sleepDurationMin": { "type": "integer", "minimum": 0, "maximum": 900 },
+    "sleepScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "deepSleepMin": { "type": "integer", "minimum": 0 },
+    "remSleepMin": { "type": "integer", "minimum": 0 },
+    "restingHr": { "type": "integer", "minimum": 25, "maximum": 120 },
+    "bodyBattery": {
+      "type": "object",
+      "properties": {
+        "wakeup": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "low": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "high": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "stressAvg": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "trainingStatus": {
+      "type": "string",
+      "enum": ["productive", "maintaining", "peaking", "recovery", "unproductive", "overreaching", "detraining", "no_status"]
+    },
+    "trainingLoad": {
+      "type": "object",
+      "properties": {
+        "ctl": { "type": "number" },
+        "atl": { "type": "number" },
+        "tsb": { "type": "number" },
+        "acwr": { "type": "number" }
+      }
+    },
+    "vo2max": { "type": "number" },
+    "syncedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  }
+}

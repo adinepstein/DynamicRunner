@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/checkin.schema.json",
+  "title": "Checkin",
+  "description": "Post-workout user-reported feedback. Submitted via the 5-second flow after activity sync.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid", "workoutId", "rpe", "feeling", "submittedAt"],
+  "properties": {
+    "uid": { "type": "string" },
+    "workoutId": { "type": "string" },
+    "activityId": { "type": "string" },
+    "rpe": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "feeling": { "$ref": "common.schema.json#/$defs/Feeling" },
+    "note": { "type": "string", "maxLength": 1000 },
+    "submittedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  }
+}

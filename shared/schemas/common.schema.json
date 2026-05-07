@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/common.schema.json",
+  "title": "Common types",
+  "description": "Reusable enums and value objects shared across DynamicRunner schemas.",
+  "$defs": {
+    "Sex": {
+      "type": "string",
+      "enum": ["male", "female", "other"]
+    },
+    "Units": {
+      "type": "string",
+      "enum": ["metric", "imperial"]
+    },
+    "RaceType": {
+      "type": "string",
+      "enum": ["5k", "10k", "half_marathon", "marathon", "ultra"]
+    },
+    "Methodology": {
+      "type": "string",
+      "enum": ["daniels_vdot", "pfitzinger_lt", "hanson", "polarized_80_20", "hybrid"]
+    },
+    "WorkoutType": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "long",
+        "tempo",
+        "threshold",
+        "intervals",
+        "fartlek",
+        "hills",
+        "race_pace",
+        "recovery",
+        "rest",
+        "strides",
+        "test"
+      ]
+    },
+    "WorkoutStatus": {
+      "type": "string",
+      "enum": ["planned", "completed", "missed", "moved", "skipped"]
+    },
+    "MovedReason": {
+      "type": "string",
+      "enum": ["missed", "user_edit", "hrv", "sleep", "load", "rhr", "performance", "replan"]
+    },
+    "Feeling": {
+      "type": "string",
+      "enum": ["great", "good", "flat", "sore", "wrecked"]
+    },
+    "AgentName": {
+      "type": "string",
+      "enum": ["planner", "adapter"]
+    },
+    "AgentTrigger": {
+      "type": "string",
+      "enum": [
+        "onboarding",
+        "manual_regenerate",
+        "weekly_review",
+        "missed_workout",
+        "hrv_drop",
+        "sleep_low",
+        "load_breach",
+        "rhr_high",
+        "performance_drift",
+        "race_change"
+      ]
+    },
+    "HrZone": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Heart-rate zone (1=recovery, 5=anaerobic)."
+    },
+    "PaceSecPerKm": {
+      "type": "integer",
+      "minimum": 120,
+      "maximum": 900,
+      "description": "Pace expressed as seconds per kilometre. 120=2:00/km, 900=15:00/km."
+    },
+    "PaceTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "minSecPerKm", "maxSecPerKm"],
+      "properties": {
+        "kind": { "const": "pace" },
+        "minSecPerKm": { "$ref": "#/$defs/PaceSecPerKm" },
+        "maxSecPerKm": { "$ref": "#/$defs/PaceSecPerKm" }
+      }
+    },
+    "HrTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "zone"],
+      "properties": {
+        "kind": { "const": "hrZone" },
+        "zone": { "$ref": "#/$defs/HrZone" }
+      }
+    },
+    "RpeTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "minRpe", "maxRpe"],
+      "properties": {
+        "kind": { "const": "rpe" },
+        "minRpe": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "maxRpe": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "Target": {
+      "oneOf": [
+        { "$ref": "#/$defs/PaceTarget" },
+        { "$ref": "#/$defs/HrTarget" },
+        { "$ref": "#/$defs/RpeTarget" }
+      ]
+    },
+    "DateOnly": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 calendar date in the user's local timezone, e.g. 2026-05-04."
+    },
+    "DateTimeUtc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 datetime in UTC."
+    },
+    "IsoWeek": {
+      "type": "string",
+      "pattern": "^\\d{4}-W\\d{2}$",
+      "description": "ISO 8601 week, e.g. 2026-W19."
+    }
+  }
+}

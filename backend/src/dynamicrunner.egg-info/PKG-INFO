@@ -1,0 +1,39 @@
+Metadata-Version: 2.4
+Name: dynamicrunner
+Version: 0.1.0
+Summary: DynamicRunner FastAPI service and domain models
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=2.6
+Provides-Extra: dev
+Requires-Dist: datamodel-code-generator[http,ruff]>=0.25; extra == "dev"
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: jsonschema>=4; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"
+
+# DynamicRunner backend
+
+Python package (`dynamicrunner`) and FastAPI service (Phase 1).
+
+## Regenerate Pydantic models from JSON Schema
+
+JSON Schemas live in [`../shared/schemas/`](../shared/schemas/). After changing any schema:
+
+```bash
+cd backend
+PIP_INDEX_URL=https://pypi.org/simple python3 -m venv .venv   # once
+./scripts/generate_schema_models.sh
+```
+
+Requires `datamodel-code-generator` (installed via `pip install -e ".[dev]"`).
+
+Generated code: `src/dynamicrunner/schema_models/` — **do not hand-edit**; fix the schema and re-run the script.
+
+## Tests
+
+```bash
+cd backend
+. .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+```

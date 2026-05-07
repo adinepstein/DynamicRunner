@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/week-override.schema.json",
+  "title": "WeekScheduleOverride",
+  "description": "Per-ISO-week schedule override. Created when the user drags workouts to different days, or when the rules engine reschedules within the week. Does not modify long-term default training days.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid", "planId", "isoWeek", "createdBy", "createdAt", "workoutDateMap"],
+  "properties": {
+    "uid": { "type": "string" },
+    "planId": { "type": "string" },
+    "isoWeek": { "$ref": "common.schema.json#/$defs/IsoWeek" },
+    "trainingDays": {
+      "type": "array",
+      "description": "Days the user is available to train this week. May differ from preferences.preferredTrainingDays.",
+      "items": { "type": "string", "enum": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] },
+      "uniqueItems": true
+    },
+    "unavailableDays": {
+      "type": "array",
+      "description": "Days the user has marked unavailable for any training (e.g. travel, work).",
+      "items": { "type": "string", "enum": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] },
+      "uniqueItems": true
+    },
+    "workoutDateMap": {
+      "type": "array",
+      "description": "Mapping of workoutId to its overridden scheduledDate within this ISO week.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["workoutId", "date"],
+        "properties": {
+          "workoutId": { "type": "string" },
+          "date": { "$ref": "common.schema.json#/$defs/DateOnly" }
+        }
+      }
+    },
+    "createdBy": { "type": "string", "enum": ["user", "agent", "rules"] },
+    "createdAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" },
+    "guardrailWarnings": {
+      "type": "array",
+      "description": "Non-blocking warnings produced by the rules engine when validating the override.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

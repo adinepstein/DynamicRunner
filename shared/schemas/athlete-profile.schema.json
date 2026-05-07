@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/athlete-profile.schema.json",
+  "title": "AthleteProfile",
+  "description": "User running fitness profile, computed from 90 days of Garmin data plus self-reported fields. Re-derived after every backfill or material change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "uid",
+    "self",
+    "fitness",
+    "preferences",
+    "computedAt"
+  ],
+  "properties": {
+    "uid": { "type": "string", "minLength": 1 },
+    "self": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["age", "sex", "weightKg", "timezone"],
+      "properties": {
+        "age": { "type": "integer", "minimum": 13, "maximum": 100 },
+        "sex": { "$ref": "common.schema.json#/$defs/Sex" },
+        "weightKg": { "type": "number", "minimum": 30, "maximum": 250 },
+        "heightCm": { "type": "number", "minimum": 100, "maximum": 230 },
+        "timezone": { "type": "string", "description": "IANA timezone, e.g. Asia/Jerusalem." },
+        "injuryNotes": { "type": "string", "maxLength": 2000 },
+        "recentRaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["raceType", "date", "finishTimeSec"],
+            "properties": {
+              "raceType": { "$ref": "common.schema.json#/$defs/RaceType" },
+              "date": { "$ref": "common.schema.json#/$defs/DateOnly" },
+              "finishTimeSec": { "type": "integer", "minimum": 600, "maximum": 100000 },
+              "garminActivityId": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "fitness": {
+      "type": "object",
+      "description": "Derived from the last 90 days of Garmin data. All fields are nullable if insufficient data.",
+      "additionalProperties": false,
+      "properties": {
+        "vo2max": { "type": "number", "minimum": 20, "maximum": 90 },
+        "weeklyMileageKm": {
+          "type": "object",
+          "description": "Trailing 4-week and 12-week averages of weekly running distance.",
+          "properties": {
+            "last4w": { "type": "number", "minimum": 0 },
+            "last12w": { "type": "number", "minimum": 0 }
+          }
+        },
+        "longestRecentRunKm": { "type": "number", "minimum": 0 },
+        "easyHardSplit": {
+          "type": "object",
+          "description": "Percentage of time in HR zones 1-2 (easy) vs 3+ (hard) over the last 90 days.",
+          "properties": {
+            "easyPct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "hardPct": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "hrZones": {
+          "type": "object",
+          "description": "User HR zones in bpm (lower bounds). Either Garmin-provided or computed from max HR.",
+          "properties": {
+            "z1": { "type": "integer" },
+            "z2": { "type": "integer" },
+            "z3": { "type": "integer" },
+            "z4": { "type": "integer" },
+            "z5": { "type": "integer" },
+            "max": { "type": "integer" },
+            "resting": { "type": "integer" }
+          }
+        },
+        "ltHr": { "type": "integer", "description": "Lactate threshold heart rate (Garmin-derived or estimated)." },
+        "thresholdPaceSecPerKm": { "$ref": "common.schema.json#/$defs/PaceSecPerKm" },
+        "garminRacePredictor": {
+          "type": "object",
+          "description": "Garmin's race time predictions, if available.",
+          "properties": {
+            "fiveKSec": { "type": "integer" },
+            "tenKSec": { "type": "integer" },
+            "halfMarathonSec": { "type": "integer" },
+            "marathonSec": { "type": "integer" }
+          }
+        },
+        "trainingLoad": {
+          "type": "object",
+          "description": "Most recent training-load metrics.",
+          "properties": {
+            "ctl": { "type": "number", "description": "Chronic training load (42d EWMA)." },
+            "atl": { "type": "number", "description": "Acute training load (7d EWMA)." },
+            "tsb": { "type": "number", "description": "Training stress balance (CTL - ATL)." },
+            "acwr": { "type": "number", "description": "Acute:chronic workload ratio." }
+          }
+        },
+        "recoveryPattern": {
+          "type": "object",
+          "description": "Typical recovery profile, used to calibrate adaptation thresholds.",
+          "properties": {
+            "hrvBaseline": { "type": "number" },
+            "hrvSd": { "type": "number" },
+            "rhrBaseline": { "type": "integer" },
+            "avgSleepHours": { "type": "number" }
+          }
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["units", "trainingDaysPerWeek", "preferredTrainingDays", "longRunDay"],
+      "properties": {
+        "units": { "$ref": "common.schema.json#/$defs/Units" },
+        "trainingDaysPerWeek": { "type": "integer", "minimum": 3, "maximum": 7 },
+        "preferredTrainingDays": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] },
+          "uniqueItems": true,
+          "minItems": 3,
+          "maxItems": 7
+        },
+        "longRunDay": { "type": "string", "enum": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] },
+        "weeklyReviewHourLocal": { "type": "integer", "minimum": 0, "maximum": 23, "default": 18 },
+        "weeklyReviewDay": { "type": "string", "enum": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"], "default": "sat" }
+      }
+    },
+    "computedAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  }
+}

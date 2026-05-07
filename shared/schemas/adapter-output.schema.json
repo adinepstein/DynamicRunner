@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/adapter-output.schema.json",
+  "title": "AdapterAgentOutput",
+  "description": "Strict output schema for Gemini's Adapter agent. Returns minimal patches over a maximum 14-day window; never rewrites the whole plan.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["patches", "summary"],
+  "properties": {
+    "patches": {
+      "type": "array",
+      "maxItems": 14,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["op", "workoutId", "reason"],
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": ["move", "modify", "replace", "insert_rest", "skip"]
+          },
+          "workoutId": { "type": "string" },
+          "newDate": {
+            "$ref": "common.schema.json#/$defs/DateOnly",
+            "description": "Required for op=move."
+          },
+          "newType": {
+            "$ref": "common.schema.json#/$defs/WorkoutType",
+            "description": "Required for op=replace."
+          },
+          "newStructure": {
+            "$ref": "workout.schema.json#/properties/structure",
+            "description": "Required for op=replace; optional for op=modify."
+          },
+          "newTitle": { "type": "string" },
+          "newEstimatedDurationSec": { "type": "integer" },
+          "reason": {
+            "type": "string",
+            "description": "Plain-language explanation shown to the user. Must reference at least one signal (HRV, sleep, RHR, ACWR, performance, missed, race-proximity).",
+            "minLength": 20,
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "1-3 sentence summary of what changed and why, displayed in the 'What changed this week' card.",
+      "minLength": 20,
+      "maxLength": 500
+    },
+    "noChangeNeeded": {
+      "type": "boolean",
+      "description": "If true, patches must be empty.",
+      "default": false
+    }
+  }
+}

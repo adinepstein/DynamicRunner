@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamicrunner.app/schemas/agent-run.schema.json",
+  "title": "AgentRun",
+  "description": "Audit record of one Gemini agent invocation. Retained 12 months for trust and debugging.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "uid", "agent", "trigger", "model", "createdAt", "status"],
+  "properties": {
+    "id": { "type": "string" },
+    "uid": { "type": "string" },
+    "agent": { "$ref": "common.schema.json#/$defs/AgentName" },
+    "trigger": { "$ref": "common.schema.json#/$defs/AgentTrigger" },
+    "model": { "type": "string", "description": "e.g. gemini-2.5-pro, gemini-2.5-flash." },
+    "promptVersion": { "type": "string", "description": "Version tag of the prompt template used." },
+    "inputSummary": {
+      "type": "object",
+      "description": "Hashes/summaries of inputs (no raw PII), for traceability.",
+      "properties": {
+        "athleteProfileHash": { "type": "string" },
+        "planId": { "type": "string" },
+        "windowDays": { "type": "integer" }
+      }
+    },
+    "rulesEngineDecisions": {
+      "type": "array",
+      "description": "Output of the deterministic rules engine that ran before the LLM.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "decision": { "type": "string" },
+          "details": { "type": "string" }
+        }
+      }
+    },
+    "outputPatches": {
+      "type": "array",
+      "description": "Patches the agent applied. Empty for planner runs (which use propose_plan).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "op": { "type": "string", "enum": ["move", "modify", "replace", "insert_rest", "skip"] },
+          "workoutId": { "type": "string" },
+          "before": { "type": "object" },
+          "after": { "type": "object" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "newPlanId": { "type": "string", "description": "Set if the planner produced a new plan." },
+    "tokensIn": { "type": "integer" },
+    "tokensOut": { "type": "integer" },
+    "costUsd": { "type": "number" },
+    "latencyMs": { "type": "integer" },
+    "status": { "type": "string", "enum": ["success", "schema_invalid", "guardrail_violation", "error"] },
+    "errorMessage": { "type": "string" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/DateTimeUtc" }
+  }
+}
