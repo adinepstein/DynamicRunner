@@ -9,6 +9,23 @@ These are the **canonical** schemas for DynamicRunner. They define the contract 
 - **Backend (Python)**: `datamodel-code-generator` produces Pydantic v2 models.
 - **App (Flutter/Dart)**: `quicktype` (or `json_serializable` from a manual transcription) produces `freezed` + `json_serializable` models.
 
+## Code generation commands
+
+- Backend models (Pydantic):
+
+```bash
+cd backend
+./scripts/generate_schema_models.sh
+```
+
+- Dart models (quicktype):
+
+```bash
+./shared/schemas/scripts/generate_dart_models.sh
+```
+
+See `shared/schemas/dart-codegen.spec.md` for mapping and conventions.
+
 **Rules:**
 
 1. Schemas are versioned. Breaking changes bump a major version (e.g. `workout.v2.schema.json`).

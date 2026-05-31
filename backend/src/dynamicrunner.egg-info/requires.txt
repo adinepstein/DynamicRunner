@@ -1,7 +1,0 @@
-pydantic>=2.6
-
-[dev]
-datamodel-code-generator[http,ruff]>=0.25
-pytest>=8
-jsonschema>=4
-ruff>=0.6

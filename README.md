@@ -28,7 +28,7 @@ See [PRD.md](PRD.md) for the full product spec, [TODO.md](TODO.md) for the imple
 
 ## Status
 
-Phase 0 — Design & schemas. See [TODO.md](TODO.md).
+Phase 1 — Foundation (Flutter scaffold landed under `app/`). See [TODO.md](TODO.md).
 
 ## Stack at a glance
 

@@ -27,3 +27,15 @@ Versioned prompt templates for DynamicRunner's two agents.
 | `push_workout_to_garmin(uid, workoutId)` | Backend post-agent | Translates schema → Garmin payload, uploads via garth |
 
 The agent never calls `push_workout_to_garmin` directly; that's handled by the backend after a patch is persisted.
+
+## Example outputs and validation
+
+- Example model outputs live in `backend/prompts/examples/`.
+- Validate the examples against JSON Schema:
+
+```bash
+cd backend
+.venv/bin/python scripts/validate_prompt_examples.py
+```
+
+- `pytest` also validates these examples against generated Pydantic models (`tests/test_prompt_example_outputs.py`).

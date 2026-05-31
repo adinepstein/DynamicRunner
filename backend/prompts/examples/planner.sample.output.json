@@ -1,0 +1,61 @@
+{
+  "plan": {
+    "raceType": "10k",
+    "raceDate": "2026-09-20",
+    "methodology": "polarized_80_20",
+    "methodologyRationale": "Your recent easy-hard split and recovery trends suggest a polarized build is the safest way to improve threshold pace while limiting fatigue spikes.",
+    "weeklyStructure": [
+      {
+        "isoWeek": "2026-W34",
+        "phase": "build",
+        "targetVolumeKm": 48.5,
+        "qualitySessions": 2
+      },
+      {
+        "isoWeek": "2026-W35",
+        "phase": "build",
+        "targetVolumeKm": 52.0,
+        "qualitySessions": 2
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "scheduledDate": "2026-08-17",
+      "type": "easy",
+      "title": "Easy aerobic run",
+      "estimatedDurationSec": 3000,
+      "structure": {
+        "mainSteps": [
+          {
+            "kind": "repeat",
+            "repeat": 2,
+            "steps": [
+              {
+                "kind": "duration",
+                "seconds": 1500,
+                "target": {
+                  "kind": "hrZone",
+                  "zone": 2
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": {
+        "rpeRange": [
+          3,
+          4
+        ]
+      }
+    }
+  ],
+  "selfCritique": {
+    "weeklyVolumeIncreaseOk": true,
+    "tapersCorrectly": true,
+    "noBackToBackHard": true,
+    "longRunCapOk": true,
+    "comments": "The weekly progression stays under conservative growth limits and keeps at least one easier day after hard stimuli."
+  }
+}

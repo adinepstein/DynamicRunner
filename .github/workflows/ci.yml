@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint + test + Docker)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+        env:
+          PIP_INDEX_URL: https://pypi.org/simple
+
+      - name: Ruff
+        run: ruff check src tests
+
+      - name: Pytest
+        run: pytest
+
+      - name: Mypy (hand-written modules)
+        run: >-
+          mypy
+          src/dynamicrunner/api
+          src/dynamicrunner/auth
+          src/dynamicrunner/config.py
+          src/dynamicrunner/logging_config.py
+
+      - name: Docker build
+        run: docker build -t dynamicrunner-api:ci .
+
+  flutter:
+    name: Flutter (analyze + test + APK)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build debug APK
+        run: flutter build apk --debug --dart-define-from-file=dart_defines.ci.json

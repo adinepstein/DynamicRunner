@@ -1,0 +1,12 @@
+{
+  "patches": [
+    {
+      "op": "move",
+      "workoutId": "workout-2026-08-19-tempo",
+      "newDate": "2026-08-20",
+      "reason": "Yesterday was missed and recovery signals are stable, so shifting this session by one day preserves stimulus without increasing risk."
+    }
+  ],
+  "summary": "One missed quality workout was moved forward by one day while preserving the weekly long-run anchor.",
+  "noChangeNeeded": false
+}

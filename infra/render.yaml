@@ -1,0 +1,21 @@
+# Render Blueprint (optional) — https://render.com/docs/blueprint-spec
+# Connect repo in Render dashboard or apply via `render blueprint sync`.
+services:
+  - type: web
+    name: dynamicrunner-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_AUDIENCE
+        value: authenticated
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_JSON
+        value: "true"

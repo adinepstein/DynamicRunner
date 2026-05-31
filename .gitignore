@@ -7,6 +7,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
 
 # Garth token caches (DynamicRunner-specific)
 .garth_tokens/
@@ -19,6 +20,7 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+app/dart_defines.json
 
 # Flutter
 app/build/

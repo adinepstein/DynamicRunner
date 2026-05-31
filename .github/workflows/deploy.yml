@@ -1,0 +1,41 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        if: ${{ secrets.RENDER_DEPLOY_HOOK != '' }}
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+
+  docker-smoke:
+    name: Verify Docker image (no deploy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -f backend/Dockerfile -t dynamicrunner-api:deploy-smoke backend
+
+      - name: Run health check
+        run: |
+          docker run -d --name api-smoke -p 8080:8000 \
+            -e SUPABASE_URL=https://ci-placeholder.supabase.co \
+            dynamicrunner-api:deploy-smoke
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz; then
+              docker rm -f api-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs api-smoke
+          docker rm -f api-smoke
+          exit 1
