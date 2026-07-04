@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -122,4 +122,53 @@ class TestGarminMfa:
             "/garmin/mfa",
             json={"email": "user@example.com", "password": "pass", "mfa_code": "123456"},
         )
+        assert resp.status_code == 401
+
+
+class TestGarminDisconnect:
+    @patch("dynamicrunner.api.routes.garmin.httpx.patch")
+    @patch("dynamicrunner.api.routes.garmin.GarminCredentialStore")
+    def test_disconnect_without_data_deletion(self, mock_store_cls, mock_patch, client, auth_headers):
+        mock_store = MagicMock()
+        mock_store_cls.return_value = mock_store
+
+        mock_patch.return_value = MagicMock(status_code=200)
+
+        resp = client.delete("/garmin", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "disconnected"
+        assert data["deleted_credentials"] is True
+        assert data["deleted_activities"] == 0
+        assert data["deleted_metrics"] == 0
+        mock_store.delete_tokens.assert_called_once()
+
+    @patch("dynamicrunner.api.routes.garmin.httpx.delete")
+    @patch("dynamicrunner.api.routes.garmin.httpx.head")
+    @patch("dynamicrunner.api.routes.garmin.httpx.patch")
+    @patch("dynamicrunner.api.routes.garmin.GarminCredentialStore")
+    def test_disconnect_with_data_deletion(
+        self, mock_store_cls, mock_patch, mock_head, mock_delete, client, auth_headers
+    ):
+        mock_store = MagicMock()
+        mock_store_cls.return_value = mock_store
+        mock_patch.return_value = MagicMock(status_code=200)
+
+        # Mock HEAD responses with content-range
+        head_activities = MagicMock()
+        head_activities.headers = {"content-range": "0-9/42"}
+        head_metrics = MagicMock()
+        head_metrics.headers = {"content-range": "0-9/90"}
+        mock_head.side_effect = [head_activities, head_metrics]
+
+        mock_delete.return_value = MagicMock(status_code=200)
+
+        resp = client.delete("/garmin?delete_data=true", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["deleted_activities"] == 42
+        assert data["deleted_metrics"] == 90
+
+    def test_disconnect_requires_auth(self, client):
+        resp = client.delete("/garmin")
         assert resp.status_code == 401

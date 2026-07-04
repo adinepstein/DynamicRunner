@@ -103,7 +103,8 @@ def _serialize_for_mfa(client: garth.Client) -> bytes:
 def login(email: str, password: str) -> LoginResult:
     """Attempt Garmin login. Returns tokens on success or MFA session if required."""
     client = garth.Client()
-    client.sess = _make_session()
+    # garth's login requires a standard requests.Session (uses .adapters/.mount)
+    # We do NOT swap in curl_cffi until after login succeeds.
 
     delay_s = random.uniform(*PRE_LOGIN_DELAY_RANGE_S)
     log.info("garmin.login.delay", delay_s=round(delay_s, 1))
@@ -127,6 +128,9 @@ def login(email: str, password: str) -> LoginResult:
     except LOGIN_HTTP_ERRORS as exc:
         return _classify_login_error(exc)
 
+    # Login succeeded — now swap in curl_cffi for Connect API calls
+    client.sess = _make_session()
+
     tokens_json = _serialize_client(client)
     username = getattr(client, "username", None) or ""
     log.info("garmin.login.success", garmin_user_id=username)
@@ -145,7 +149,7 @@ def complete_mfa(email: str, password: str, mfa_code: str) -> MfaResult:
     re-login with the code injected via prompt_mfa callback.
     """
     client = garth.Client()
-    client.sess = _make_session()
+    # Use default requests.Session for login (garth requires .adapters)
 
     delay_s = random.uniform(1, 3)
     time.sleep(delay_s)
@@ -172,6 +176,9 @@ def complete_mfa(email: str, password: str, mfa_code: str) -> MfaResult:
             status=result.status,
             error_message=result.error_message,
         )
+
+    # Login succeeded — swap in curl_cffi for Connect API calls
+    client.sess = _make_session()
 
     tokens_json = _serialize_client(client)
     username = getattr(client, "username", None) or ""

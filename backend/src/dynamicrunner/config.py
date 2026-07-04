@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = Field(default="", validation_alias="SUPABASE_SERVICE_ROLE_KEY")
     supabase_jwt_audience: str = Field(default="authenticated", validation_alias="SUPABASE_JWT_AUDIENCE")
     app_encryption_key: str = Field(default="", validation_alias="APP_ENCRYPTION_KEY")
+    cron_secret: str = Field(default="", validation_alias="CRON_SECRET")
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     log_json: bool = Field(default=False, validation_alias="LOG_JSON")
 

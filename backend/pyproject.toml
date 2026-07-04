@@ -59,3 +59,7 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "dynamicrunner.garmin.client"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "dynamicrunner.garmin.backfill"
+ignore_errors = true

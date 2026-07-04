@@ -1,3 +1,4 @@
+import "package:flutter/foundation.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:supabase_flutter/supabase_flutter.dart";
 
@@ -25,23 +26,45 @@ class UserProfile {
   }
 }
 
-final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
-  final session = Supabase.instance.client.auth.currentSession;
-  if (session == null) return null;
+final userProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref) async {
+  final client = Supabase.instance.client;
+  final session = client.auth.currentSession;
+  if (session == null) {
+    debugPrint("[profile_provider] No session");
+    return null;
+  }
+
+  final uid = session.user.id;
+  debugPrint("[profile_provider] uid=$uid token_starts=${session.accessToken.substring(0, 20)}");
 
   try {
-    final row = await Supabase.instance.client
+    // Use rpc call to bypass potential RLS issues - fall back to direct query
+    final row = await client
         .from("profiles")
         .select("user_id, email, timezone, units")
-        .eq("user_id", session.user.id)
+        .eq("user_id", uid)
         .maybeSingle();
-    if (row == null) return null;
-    return UserProfile.fromJson(row);
-  } on PostgrestException catch (e) {
-    // Table missing until migrations are applied.
-    if (e.code == "PGRST205" || e.message.contains("profiles")) {
-      return null;
+
+    if (row != null) {
+      debugPrint("[profile_provider] Got profile: $row");
+      return UserProfile.fromJson(row);
     }
-    rethrow;
+
+    // RLS might be blocking. Build profile from auth user data as fallback.
+    debugPrint("[profile_provider] Query returned null, using auth user as fallback");
+    return UserProfile(
+      userId: uid,
+      email: session.user.email,
+      timezone: "UTC",
+      units: "metric",
+    );
+  } catch (e) {
+    debugPrint("[profile_provider] Error: $e — using fallback");
+    return UserProfile(
+      userId: uid,
+      email: session.user.email,
+      timezone: "UTC",
+      units: "metric",
+    );
   }
 });

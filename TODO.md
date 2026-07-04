@@ -100,17 +100,28 @@ Goal: lock the contracts before we write code, so the Flutter team and Python te
   - ✅ `backend/src/dynamicrunner/api/routes/garmin.py` — `POST /garmin/login` + `POST /garmin/mfa` routes; stores encrypted tokens via `GarminCredentialStore`; upserts `garmin_profiles` row.
   - ✅ Tests in `backend/tests/test_garmin_routes.py` — 7 tests covering success, MFA required, invalid credentials, rate limiting, and auth enforcement.
   - Acceptance: end-to-end from Flutter UI through to encrypted token storage; password is wiped from memory after token exchange (verified by code review + log audit).
-- [ ] **2.4 — 90-day backfill job**
+- [x] **2.4 — 90-day backfill job**
   - Pulls activities, daily metrics, sleep, HRV, body battery, stress, VO2max history; idempotent; chunked to respect Garmin rate limits; writes to **Postgres** tables per PRD §8 (`user_id` + natural keys).
+  - ✅ `backend/src/dynamicrunner/garmin/backfill.py` — `run_backfill()` orchestrator with paginated activity fetch, day-by-day daily metrics (steps, RHR, sleep, body battery, stress, HRV), 1s inter-request delay, chunked upserts (50 rows/batch), progress reporting to `garmin_profiles.backfill_progress`.
+  - ✅ `POST /garmin/backfill` endpoint — triggers background thread; validates credentials exist first; returns immediately.
+  - ✅ 15 unit tests in `backend/tests/test_garmin_backfill.py` covering pagination, empty responses, token expiry, upsert logic, and endpoint auth.
   - Acceptance: typical account fully backfilled in <2 minutes; re-run produces zero duplicates (idempotent on `garmin_activity_id` and `date`).
-- [ ] **2.5 — Daily delta sync via cron → HTTPS**
+- [x] **2.5 — Daily delta sync via cron → HTTPS**
   - Register users for **external cron** (e.g. cron-job.org) or **GitHub Actions** `schedule` calling **`POST /internal/sync`** (or per-user endpoint) with **`Authorization: Bearer <cron secret>`** or **HMAC**; fires ~user local 04:00 (store timezone on profile). **`[future-aws]`**: EventBridge Scheduler → signed API Gateway.
+  - ✅ `backend/src/dynamicrunner/api/routes/internal.py` — `POST /internal/sync` (all users) and `POST /internal/sync/{user_id}` (single user). Protected by `CRON_SECRET` bearer token. Syncs last 2 days per user.
+  - ✅ `.github/workflows/sync.yml` — GitHub Actions scheduled workflow (01:00 UTC daily) that curls the sync endpoint.
+  - ✅ 7 tests in `backend/tests/test_internal_sync.py` covering auth, no-users, multi-user, and single-user sync.
   - Acceptance: 95% of test users sync within 5 minutes of scheduled time; failures retry with exponential backoff up to 1 hour; alert on >5% sync-failure rate (Sentry or host metrics — **`[future-aws]`** CloudWatch alarm).
-- [ ] **2.6 — Sync health monitoring & re-auth banner**
+- [x] **2.6 — Sync health monitoring & re-auth banner**
   - `sync_status` on `garmin_profiles`; backend marks `reauth_required` when refresh fails; **Supabase Realtime** (or poll) updates Flutter; banner with one-tap reconnect.
+  - ✅ `GET /garmin/status` endpoint — returns connection status, reauth flag, backfill progress.
+  - ✅ `app/lib/src/features/garmin/garmin_sync_provider.dart` — Riverpod `StreamProvider` watching `garmin_profiles` via Supabase Realtime for live updates.
+  - ✅ `app/lib/src/features/garmin/garmin_status_widgets.dart` — `GarminReauthBanner` (MaterialBanner with reconnect button) and `GarminSyncChip` (status indicator).
   - Acceptance: simulating an expired refresh token produces the banner within seconds; reconnect restores sync.
-- [ ] **2.7 — Disconnect flow**
+- [x] **2.7 — Disconnect flow**
   - `DELETE /garmin` deletes ciphertext row(s), marks `garmin_profiles` disconnected, **removes user from cron registry** (or skip-list), optionally deletes synced activities (user choice).
+  - ✅ `DELETE /garmin?delete_data=true|false` — deletes credentials, marks profile disconnected; optionally purges activities + daily_metrics.
+  - ✅ 3 tests covering disconnect with/without data deletion and auth requirement.
   - Acceptance: tested end-to-end; no residual tokens in Postgres; cron no longer hits that user.
 
 ## Phase 3 — Onboarding & athlete profile (week 5–7)

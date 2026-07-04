@@ -1,0 +1,22 @@
+name: Daily Garmin Sync
+
+on:
+  schedule:
+    # Runs at 01:00 UTC daily (~04:00 Israel time)
+    - cron: '0 1 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily sync
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -sf -X POST "${API_URL}/internal/sync" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 30
+          echo "Sync triggered successfully"

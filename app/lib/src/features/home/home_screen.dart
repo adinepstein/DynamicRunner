@@ -47,7 +47,7 @@ class HomeScreen extends ConsumerWidget {
             profileAsync.when(
               data: (profile) => Text(
                 profile == null
-                    ? "Profile row: not found (run supabase migrations?)"
+                    ? "Profile row: not found for uid=${session?.user.id ?? '?'}\n(check debug console for details)"
                     : "Profile timezone: ${profile.timezone}, units: ${profile.units}",
               ),
               loading: () => const Text("Loading profile…"),

@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import "features/auth/sign_in_screen.dart";
 import "features/home/home_screen.dart";
+import "features/onboarding/onboarding_provider.dart";
+import "features/onboarding/onboarding_screen.dart";
 
 /// True after [Firebase.initializeApp] succeeds (needed for FCM).
 final firebaseReadyProvider = Provider<bool>((ref) => false);
@@ -15,20 +17,30 @@ final sentryEnabledProvider = Provider<bool>((ref) => false);
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final goRouterProvider = Provider<GoRouter>((ref) {
+  final needsOnboarding = ref.watch(needsOnboardingProvider);
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: "/",
     redirect: (context, state) {
       final loggedIn = Supabase.instance.client.auth.currentSession != null;
       final onSignIn = state.matchedLocation == "/sign-in";
+      final onOnboarding = state.matchedLocation == "/onboarding";
+
       if (!loggedIn && !onSignIn) return "/sign-in";
       if (loggedIn && onSignIn) return "/";
+      if (loggedIn && needsOnboarding && !onOnboarding) return "/onboarding";
+      if (loggedIn && !needsOnboarding && onOnboarding) return "/";
       return null;
     },
     routes: [
       GoRoute(
         path: "/sign-in",
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: "/onboarding",
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: "/",
