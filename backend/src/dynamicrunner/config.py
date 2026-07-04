@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     supabase_jwt_audience: str = Field(default="authenticated", validation_alias="SUPABASE_JWT_AUDIENCE")
     app_encryption_key: str = Field(default="", validation_alias="APP_ENCRYPTION_KEY")
     cron_secret: str = Field(default="", validation_alias="CRON_SECRET")
+    gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-2.5-pro", validation_alias="GEMINI_MODEL")
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     log_json: bool = Field(default=False, validation_alias="LOG_JSON")
 

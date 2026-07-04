@@ -7,6 +7,7 @@ import "features/auth/sign_in_screen.dart";
 import "features/home/home_screen.dart";
 import "features/onboarding/onboarding_provider.dart";
 import "features/onboarding/onboarding_screen.dart";
+import "features/plan/plan_screen.dart";
 
 /// True after [Firebase.initializeApp] succeeds (needed for FCM).
 final firebaseReadyProvider = Provider<bool>((ref) => false);
@@ -45,6 +46,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: "/",
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: "/plan",
+        builder: (context, state) => const PlanScreen(),
       ),
     ],
   );

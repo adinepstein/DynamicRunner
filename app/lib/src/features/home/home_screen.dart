@@ -55,6 +55,12 @@ class HomeScreen extends ConsumerWidget {
             ),
             Text("Firebase (FCM): ${firebaseOk ? "initialized" : "not initialized — add google-services.json"}"),
             Text("Sentry: ${sentryOk ? "enabled" : "disabled — set SENTRY_DSN to enable"}"),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => context.push("/plan"),
+              icon: const Icon(Icons.calendar_month),
+              label: const Text("View Training Plan"),
+            ),
             const Spacer(),
             FilledButton(
               onPressed: sentryOk

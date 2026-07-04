@@ -19,6 +19,7 @@ dependencies = [
   "cryptography>=43",
   "garth>=0.5.0",
   "curl_cffi>=0.15.0",
+  "google-genai>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -62,4 +63,8 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "dynamicrunner.garmin.backfill"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "dynamicrunner.ai.*"
 ignore_errors = true
