@@ -16,6 +16,8 @@ from fastapi import APIRouter, HTTPException, Request, status
 from dynamicrunner.config import get_settings
 from dynamicrunner.garmin.backfill import BackfillError, run_backfill
 from dynamicrunner.garmin.push_workout import push_workout_to_garmin
+from dynamicrunner.adaptation.adapter import run_adaptation
+from dynamicrunner.matching import run_matching_for_user
 
 log = structlog.get_logger(__name__)
 
@@ -186,3 +188,76 @@ def trigger_push_workouts(request: Request) -> dict[str, Any]:
         "pushed": len(to_push),
         "date": tomorrow,
     }
+
+
+@router.post("/weekly-review")
+def trigger_weekly_review(request: Request) -> dict[str, Any]:
+    """Trigger weekly adaptation review for all active users.
+
+    Called by cron Saturday ~18:00 local. Runs the adaptation pipeline
+    (rules engine + Gemini adapter) for each user with an active plan.
+    """
+    _verify_cron_secret(request)
+    settings = get_settings()
+
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+    }
+
+    # Find users with active plans
+    resp = httpx.get(
+        f"{settings.supabase_url.rstrip('/')}/rest/v1/plans",
+        params={
+            "status": "eq.active",
+            "select": "user_id",
+        },
+        headers=headers,
+        timeout=15,
+    )
+    resp.raise_for_status()
+    users = resp.json()
+
+    if not users:
+        return {"status": "ok", "reviewed": 0, "message": "No active plans"}
+
+    user_ids = list({u["user_id"] for u in users})
+    log.info("weekly_review.triggered", user_count=len(user_ids))
+
+    def _review_user(uid: str) -> None:
+        try:
+            run_adaptation(settings, uid)
+        except Exception as exc:
+            log.error("weekly_review.user_failed", user_id=uid, error=str(exc))
+
+    threads: list[threading.Thread] = []
+    for uid in user_ids:
+        t = threading.Thread(target=_review_user, args=(uid,), daemon=True)
+        t.start()
+        threads.append(t)
+
+    return {
+        "status": "started",
+        "reviewed": len(user_ids),
+    }
+
+
+@router.post("/adapt/{user_id}")
+def trigger_adaptation(user_id: str, request: Request) -> dict[str, Any]:
+    """Trigger adaptation for a specific user (event-driven or manual)."""
+    _verify_cron_secret(request)
+    settings = get_settings()
+
+    def _run() -> None:
+        try:
+            # First match any new activities to workouts
+            run_matching_for_user(settings, user_id, days=2)
+            # Then run adaptation
+            run_adaptation(settings, user_id)
+        except Exception as exc:
+            log.error("adapt.user_failed", user_id=user_id, error=str(exc))
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+    return {"status": "started", "user_id": user_id}

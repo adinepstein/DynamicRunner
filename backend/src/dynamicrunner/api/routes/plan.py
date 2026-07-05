@@ -206,3 +206,67 @@ def push_workout(request: Request, body: PushWorkoutRequest) -> PushWorkoutRespo
     if garmin_id:
         return PushWorkoutResponse(status="pushed", garmin_workout_id=garmin_id)
     return PushWorkoutResponse(status="failed")
+
+
+class ReorderMove(BaseModel):
+    workout_id: str
+    new_date: str
+
+
+class ReorderRequest(BaseModel):
+    moves: list[ReorderMove]
+
+
+class ReorderResponse(BaseModel):
+    status: str
+    applied: int = 0
+
+
+@router.post("/plan/reorder", response_model=ReorderResponse)
+def reorder_workouts(request: Request, body: ReorderRequest) -> ReorderResponse:
+    """Reorder workouts within the current week (swap scheduled dates)."""
+    uid: str = request.state.uid
+    settings = get_settings()
+
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+    }
+
+    applied = 0
+    for move in body.moves:
+        # Verify ownership
+        resp = httpx.get(
+            f"{settings.supabase_url.rstrip('/')}/rest/v1/workouts",
+            params={
+                "id": f"eq.{move.workout_id}",
+                "user_id": f"eq.{uid}",
+                "select": "id,payload",
+            },
+            headers={
+                "apikey": settings.supabase_service_role_key,
+                "Authorization": f"Bearer {settings.supabase_service_role_key}",
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        rows = resp.json()
+        if not rows:
+            continue
+
+        payload = rows[0].get("payload", {})
+        payload["scheduledDate"] = move.new_date
+
+        resp = httpx.patch(
+            f"{settings.supabase_url.rstrip('/')}/rest/v1/workouts",
+            params={"id": f"eq.{move.workout_id}", "user_id": f"eq.{uid}"},
+            headers=headers,
+            json={"scheduled_date": move.new_date, "payload": payload},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        applied += 1
+
+    return ReorderResponse(status="ok", applied=applied)

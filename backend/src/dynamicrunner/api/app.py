@@ -8,7 +8,7 @@ import structlog
 from fastapi import FastAPI
 
 from dynamicrunner.api.middleware import SupabaseAuthMiddleware
-from dynamicrunner.api.routes import checkin, features, garmin, health, internal, me, plan
+from dynamicrunner.api.routes import adaptation, checkin, features, garmin, health, internal, me, plan
 from dynamicrunner.auth.jwt import SupabaseJwtVerifier
 from dynamicrunner.config import Settings, get_settings
 from dynamicrunner.logging_config import configure_logging
@@ -44,6 +44,7 @@ def create_app(
     app.include_router(features.router)
     app.include_router(plan.router)
     app.include_router(checkin.router)
+    app.include_router(adaptation.router)
     app.include_router(internal.router)
 
     app.add_middleware(

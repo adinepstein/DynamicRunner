@@ -9,6 +9,8 @@ import "features/onboarding/onboarding_provider.dart";
 import "features/onboarding/onboarding_screen.dart";
 import "features/plan/plan_screen.dart";
 import "features/today/today_screen.dart";
+import "features/adaptation/adaptation_feed_screen.dart";
+import "features/adaptation/edit_week_screen.dart";
 
 /// True after [Firebase.initializeApp] succeeds (needed for FCM).
 final firebaseReadyProvider = Provider<bool>((ref) => false);
@@ -55,6 +57,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: "/today",
         builder: (context, state) => const TodayScreen(),
+      ),
+      GoRoute(
+        path: "/changes",
+        builder: (context, state) => const AdaptationFeedScreen(),
+      ),
+      GoRoute(
+        path: "/edit-week",
+        builder: (context, state) => const EditWeekScreen(),
       ),
     ],
   );

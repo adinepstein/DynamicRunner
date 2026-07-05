@@ -67,6 +67,18 @@ class HomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.calendar_month),
               label: const Text("View Training Plan"),
             ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: () => context.push("/changes"),
+              icon: const Icon(Icons.auto_fix_high),
+              label: const Text("What Changed"),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => context.push("/edit-week"),
+              icon: const Icon(Icons.swap_vert),
+              label: const Text("Edit This Week"),
+            ),
             const Spacer(),
             FilledButton(
               onPressed: sentryOk

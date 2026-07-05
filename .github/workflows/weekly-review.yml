@@ -1,0 +1,22 @@
+name: Weekly Plan Review
+
+on:
+  schedule:
+    # Runs at 15:00 UTC Saturday (~18:00 Israel time)
+    - cron: '0 15 * * 6'
+  workflow_dispatch: {}
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly adaptation review
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -sf -X POST "${API_URL}/internal/weekly-review" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 30
+          echo "Weekly review triggered successfully"
