@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
 import structlog
 
@@ -11,6 +12,7 @@ def configure_logging(*, level: str = "INFO", json_logs: bool = False) -> None:
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
+        _add_request_id,
     ]
 
     if json_logs:
@@ -29,3 +31,19 @@ def configure_logging(*, level: str = "INFO", json_logs: bool = False) -> None:
     )
 
     logging.basicConfig(level=getattr(logging, level.upper(), logging.INFO), format="%(message)s")
+
+
+def _add_request_id(
+    logger: structlog.types.WrappedLogger,
+    method_name: str,
+    event_dict: structlog.types.EventDict,
+) -> structlog.types.EventDict:
+    """Add request_id to log events if present in context."""
+    if "request_id" not in event_dict:
+        event_dict.setdefault("request_id", None)
+    return event_dict
+
+
+def generate_request_id() -> str:
+    """Generate a short unique request ID for tracing."""
+    return uuid.uuid4().hex[:12]

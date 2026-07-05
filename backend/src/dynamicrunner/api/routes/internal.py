@@ -17,6 +17,7 @@ from dynamicrunner.config import get_settings
 from dynamicrunner.garmin.backfill import BackfillError, run_backfill
 from dynamicrunner.garmin.push_workout import push_workout_to_garmin
 from dynamicrunner.adaptation.adapter import run_adaptation
+from dynamicrunner.gdpr import process_expired_deletions
 from dynamicrunner.matching import run_matching_for_user
 
 log = structlog.get_logger(__name__)
@@ -261,3 +262,15 @@ def trigger_adaptation(user_id: str, request: Request) -> dict[str, Any]:
     thread.start()
 
     return {"status": "started", "user_id": user_id}
+
+
+@router.post("/gdpr-cleanup")
+def trigger_gdpr_cleanup(request: Request) -> dict[str, Any]:
+    """Process expired account deletion requests.
+
+    Called daily by cron. Finds users past their 30-day grace period
+    and executes hard delete of all their data.
+    """
+    _verify_cron_secret(request)
+    settings = get_settings()
+    return process_expired_deletions(settings)
