@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from dynamicrunner.ai.planner import generate_plan
 from dynamicrunner.config import get_settings
+from dynamicrunner.garmin.push_workout import push_workout_to_garmin
 
 import httpx
 
@@ -157,3 +158,51 @@ def get_plan_workouts(
         )
         for row in resp.json()
     ]
+
+
+class PushWorkoutRequest(BaseModel):
+    workout_id: str
+
+
+class PushWorkoutResponse(BaseModel):
+    status: str
+    garmin_workout_id: str | None = None
+
+
+@router.post("/push-workout", response_model=PushWorkoutResponse)
+def push_workout(request: Request, body: PushWorkoutRequest) -> PushWorkoutResponse:
+    """Push a specific workout to the user's Garmin watch."""
+    uid: str = request.state.uid
+    settings = get_settings()
+
+    # Fetch the workout
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+    }
+    resp = httpx.get(
+        f"{settings.supabase_url.rstrip('/')}/rest/v1/workouts",
+        params={
+            "id": f"eq.{body.workout_id}",
+            "user_id": f"eq.{uid}",
+            "select": "id,payload",
+        },
+        headers=headers,
+        timeout=10,
+    )
+    resp.raise_for_status()
+    rows = resp.json()
+
+    if not rows:
+        return PushWorkoutResponse(status="not_found")
+
+    payload = rows[0].get("payload", {})
+
+    if payload.get("type") == "rest":
+        return PushWorkoutResponse(status="skipped_rest_day")
+
+    garmin_id = push_workout_to_garmin(settings, uid, body.workout_id, payload)
+
+    if garmin_id:
+        return PushWorkoutResponse(status="pushed", garmin_workout_id=garmin_id)
+    return PushWorkoutResponse(status="failed")

@@ -20,3 +20,18 @@ jobs:
             -H "Content-Type: application/json" \
             --max-time 30
           echo "Sync triggered successfully"
+
+  push-workouts:
+    runs-on: ubuntu-latest
+    needs: sync
+    steps:
+      - name: Push tomorrow's workouts to Garmin
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -sf -X POST "${API_URL}/internal/push-workouts" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 30
+          echo "Push workouts triggered successfully"

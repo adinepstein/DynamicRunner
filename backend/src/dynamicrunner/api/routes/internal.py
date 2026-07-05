@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from dynamicrunner.config import get_settings
 from dynamicrunner.garmin.backfill import BackfillError, run_backfill
+from dynamicrunner.garmin.push_workout import push_workout_to_garmin
 
 log = structlog.get_logger(__name__)
 
@@ -113,3 +114,75 @@ def trigger_sync_user(user_id: str, request: Request) -> dict[str, Any]:
     thread.start()
 
     return {"status": "started", "user_id": user_id, "days": 2}
+
+
+@router.post("/push-workouts")
+def trigger_push_workouts(request: Request) -> dict[str, Any]:
+    """Push tomorrow's workouts to Garmin for all active users.
+
+    Called by cron ~04:30 local. Finds unpushed workouts for tomorrow
+    and uploads them to Garmin Connect.
+    """
+    _verify_cron_secret(request)
+    settings = get_settings()
+
+    from datetime import date, timedelta
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+
+    headers = {
+        "apikey": settings.supabase_service_role_key,
+        "Authorization": f"Bearer {settings.supabase_service_role_key}",
+    }
+
+    # Find workouts scheduled for tomorrow that haven't been pushed
+    resp = httpx.get(
+        f"{settings.supabase_url.rstrip('/')}/rest/v1/workouts",
+        params={
+            "scheduled_date": f"eq.{tomorrow}",
+            "select": "id,user_id,payload",
+        },
+        headers=headers,
+        timeout=15,
+    )
+    resp.raise_for_status()
+    workouts = resp.json()
+
+    # Filter to ones without garminWorkoutId
+    to_push = [
+        w for w in workouts
+        if not (w.get("payload") or {}).get("garminWorkoutId")
+        and (w.get("payload") or {}).get("type") != "rest"
+    ]
+
+    if not to_push:
+        return {"status": "ok", "pushed": 0, "message": "No workouts to push"}
+
+    log.info("push_workouts.triggered", count=len(to_push), date=tomorrow)
+
+    def _push_one(workout: dict[str, Any]) -> None:
+        try:
+            push_workout_to_garmin(
+                settings,
+                workout["user_id"],
+                workout["id"],
+                workout.get("payload", {}),
+            )
+        except Exception as exc:
+            log.error(
+                "push_workouts.failed",
+                workout_id=workout["id"],
+                error=str(exc),
+            )
+
+    threads: list[threading.Thread] = []
+    for w in to_push:
+        t = threading.Thread(target=_push_one, args=(w,), daemon=True)
+        t.start()
+        threads.append(t)
+
+    return {
+        "status": "started",
+        "pushed": len(to_push),
+        "date": tomorrow,
+    }

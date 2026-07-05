@@ -57,6 +57,12 @@ class HomeScreen extends ConsumerWidget {
             Text("Sentry: ${sentryOk ? "enabled" : "disabled — set SENTRY_DSN to enable"}"),
             const SizedBox(height: 24),
             FilledButton.icon(
+              onPressed: () => context.push("/today"),
+              icon: const Icon(Icons.directions_run),
+              label: const Text("Today's Workout"),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
               onPressed: () => context.push("/plan"),
               icon: const Icon(Icons.calendar_month),
               label: const Text("View Training Plan"),
