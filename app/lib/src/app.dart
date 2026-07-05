@@ -11,6 +11,8 @@ import "features/plan/plan_screen.dart";
 import "features/today/today_screen.dart";
 import "features/adaptation/adaptation_feed_screen.dart";
 import "features/adaptation/edit_week_screen.dart";
+import "features/dashboard/dashboard_screen.dart";
+import "features/settings/settings_screen.dart";
 
 /// True after [Firebase.initializeApp] succeeds (needed for FCM).
 final firebaseReadyProvider = Provider<bool>((ref) => false);
@@ -65,6 +67,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: "/edit-week",
         builder: (context, state) => const EditWeekScreen(),
+      ),
+      GoRoute(
+        path: "/dashboard",
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: "/settings",
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

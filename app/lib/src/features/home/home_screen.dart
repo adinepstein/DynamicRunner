@@ -79,6 +79,18 @@ class HomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.swap_vert),
               label: const Text("Edit This Week"),
             ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: () => context.push("/dashboard"),
+              icon: const Icon(Icons.analytics),
+              label: const Text("Dashboard"),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => context.push("/settings"),
+              icon: const Icon(Icons.settings),
+              label: const Text("Settings"),
+            ),
             const Spacer(),
             FilledButton(
               onPressed: sentryOk
